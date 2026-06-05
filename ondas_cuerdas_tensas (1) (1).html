@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ondas en Cuerdas Tensas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0f0a1e;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(219,39,119,0.12) 0%, transparent 50%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Crimson Pro', Georgia, serif;
+  padding: 16px;
+}
+
+/* ── BOOK SHELL ─────────────────────────────────────── */
+.book-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 860px;
+}
+
+.book-label {
+  color: rgba(255,255,255,0.45);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.book {
+  width: 100%;
+  max-width: 860px;
+  height: 540px;
+  display: flex;
+  position: relative;
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,58,237,0.3);
+  overflow: hidden;
+}
+
+/* spine */
+.book::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 6px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #5b21b6, #3b0764);
+  box-shadow: 0 0 16px rgba(91,33,182,0.7);
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* ── SPREAD (two pages visible at once) ──────────────── */
+.spread {
+  display: none;
+  width: 100%;
+  height: 100%;
+  flex-direction: row;
+}
+.spread.active {
+  display: flex;
+  animation: fadeIn .35s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── PAGE ───────────────────────────────────────────── */
+.page {
+  width: 50%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #7c3aed transparent;
+}
+.page::-webkit-scrollbar { width: 4px; }
+.page::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 2px; }
+
+.page-left {
+  background: linear-gradient(to right, #e8e0cc 0%, #f5f0e8 100%);
+  border-radius: 4px 0 0 4px;
+}
+.page-right {
+  background: linear-gradient(to left, #e8e0cc 0%, #f5f0e8 100%);
+  border-radius: 0 4px 4px 0;
+}
+
+/* faint ruled lines */
+.page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent, transparent 27px,
+    rgba(100,70,180,0.07) 27px, rgba(100,70,180,0.07) 28px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-inner {
+  position: relative;
+  z-index: 1;
+  padding: 28px 26px 40px;
+  height: 100%;
+}
+
+.page-num {
+  position: absolute;
+  bottom: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(26,16,48,0.35);
+  z-index: 2;
+}
+.page-left  .page-num { left: 18px; }
+.page-right .page-num { right: 18px; }
+
+/* ── COVER ──────────────────────────────────────────── */
+.cover-spread .page-left {
+  background: linear-gradient(135deg, #1a0a3e 0%, #2d1060 50%, #0f0a1e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cover-spread .page-left::before { display: none; }
+
+.cover-content {
+  text-align: center;
+  padding: 24px 20px;
+  position: relative;
+  z-index: 2;
+}
+.cover-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(124,58,237,0.35) 0%, transparent 65%);
+  z-index: -1;
+}
+.wave-anim {
+  font-size: 44px;
+  display: block;
+  margin-bottom: 14px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-9px); }
+}
+.cover-brand {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.cover-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  color: #fff;
+  line-height: 1.15;
+  text-shadow: 0 0 30px rgba(124,58,237,0.9);
+  margin-bottom: 10px;
+}
+.cover-sub {
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+.cover-divider {
+  width: 55px; height: 2px;
+  background: linear-gradient(90deg, #7c3aed, #db2777);
+  margin: 10px auto;
+  border-radius: 1px;
+}
+.cover-authors {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.cover-presenter {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.75);
+}
+.cover-presenter span { color: #f9a8d4; font-weight: 600; }
+
+/* ── TYPOGRAPHY ─────────────────────────────────────── */
+.page h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #5b21b6;
+  margin-bottom: 5px;
+  line-height: 1.25;
+}
+.page h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  color: #1a1030;
+  margin: 14px 0 5px;
+  padding-bottom: 3px;
+  border-bottom: 2px solid #db2777;
+}
+.page h3 {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #db2777;
+  margin: 11px 0 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.page p {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #1a1030;
+  margin-bottom: 7px;
+}
+.page ul {
+  margin: 5px 0 8px 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #1a1030;
+}
+.page li { margin-bottom: 3px; }
+.red-line { width: 38px; height: 3px; background: #db2777; margin-bottom: 11px; border-radius: 2px; }
+
+.formula {
+  background: linear-gradient(135deg, rgba(124,58,237,0.09), rgba(219,39,119,0.06));
+  border: 1.5px dashed rgba(124,58,237,0.38);
+  border-radius: 7px;
+  padding: 9px 14px;
+  margin: 9px 0;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: #1a1030;
+  line-height: 1.6;
+}
+.formula.big { font-size: 17px; font-weight: 700; color: #5b21b6; }
+
+.note-box {
+  background: rgba(212,160,23,0.11);
+  border-left: 4px solid #d4a017;
+  border-radius: 0 6px 6px 0;
+  padding: 8px 12px;
+  margin: 9px 0;
+  font-size: 12.5px;
+  font-style: italic;
+  color: #4a3000;
+}
+.def-box {
+  background: rgba(124,58,237,0.07);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 7px 0;
+  font-size: 13px;
+  color: #1a1030;
+}
+
+/* ── TOC ────────────────────────────────────────────── */
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1a1030;
+  border-left: 3px solid transparent;
+  transition: all .2s;
+}
+.toc-item:hover { background: rgba(124,58,237,0.09); border-left-color: #7c3aed; }
+.toc-num { font-family: 'Space Mono', monospace; font-size: 10px; color: #db2777; min-width: 22px; }
+
+/* ── TABLE ──────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+.data-table th { background: rgba(124,58,237,0.13); padding: 5px 8px; font-family: 'Space Mono',monospace; font-size: 10px; color: #5b21b6; letter-spacing: .8px; text-align: left; }
+.data-table td { padding: 4px 8px; border-bottom: 1px solid rgba(124,58,237,0.1); color: #1a1030; }
+.data-table tr:hover td { background: rgba(124,58,237,0.04); }
+
+/* ── SEMITONES ──────────────────────────────────────── */
+.semitones { display: flex; flex-wrap: wrap; gap: 4px; margin: 7px 0; }
+.semitone { padding: 3px 7px; border-radius: 3px; font-family: 'Space Mono', monospace; font-size: 11px; background: rgba(124,58,237,0.1); color: #5b21b6; border: 1px solid rgba(124,58,237,0.22); }
+.semitone.sharp { background: rgba(219,39,119,0.09); color: #be185d; border-color: rgba(219,39,119,0.2); }
+
+/* ── SIMULATORS ─────────────────────────────────────── */
+.sim-wrap {
+  background: #07040f;
+  border-radius: 7px;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(124,58,237,0.3);
+}
+.sim-wrap canvas { display: block; width: 100%; border-radius: 4px; }
+.sim-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 7px;
+  align-items: flex-end;
+}
+.ctrl-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.ctrl-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: .5px;
+}
+.ctrl-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: #a78bfa;
+}
+.sim-controls input[type=range] { width: 80px; accent-color: #7c3aed; cursor: pointer; }
+.sim-controls select {
+  background: #1a0a3e;
+  color: #e2d9ff;
+  border: 1px solid #7c3aed;
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.sbtn {
+  padding: 5px 11px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  align-self: flex-end;
+}
+.sbtn:hover { background: #6d28d9; }
+.sbtn.on { background: #db2777; }
+.sim-info {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: #7c3aed;
+  margin-top: 5px;
+  padding: 5px 8px;
+  background: rgba(124,58,237,0.07);
+  border-radius: 4px;
+}
+
+/* ── NAV ────────────────────────────────────────────── */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.nbtn {
+  padding: 11px 26px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all .2s;
+}
+.nbtn-prev { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.14); }
+.nbtn-prev:hover:not(:disabled) { background: rgba(255,255,255,0.14); }
+.nbtn-next { background: #7c3aed; color: #fff; box-shadow: 0 4px 18px rgba(124,58,237,0.45); }
+.nbtn-next:hover:not(:disabled) { background: #6d28d9; }
+.nbtn:disabled { opacity: .3; cursor: not-allowed; }
+.page-ind {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+  min-width: 70px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="book-wrapper">
+  <div class="book-label">✦ CUADERNO INTERACTIVO DE FÍSICA ✦</div>
+
+  <div class="book" id="book">
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 0 — PORTADA + ÍNDICE
+    ════════════════════════════════════════════ -->
+    <div class="spread cover-spread active" id="spread-0">
+
+      <div class="page page-left">
+        <div class="cover-content">
+          <span class="wave-anim">〜</span>
+          <div class="cover-brand">Física Interactiva · Msc. Néstor Fabio Montoya Palacios</div>
+          <div class="cover-title">Ondas en<br>Cuerdas<br>Tensas</div>
+          <div class="cover-divider"></div>
+          <div class="cover-sub">Ondas estacionarias, armónicos<br>y resonancia musical</div>
+          <div class="cover-divider"></div>
+          <div class="cover-authors">PITÁGORAS · MERSENNE · TAYLOR · D'ALEMBERT</div>
+          <div class="cover-presenter">Presentado por: <span>Tiara Santana</span></div>
+        </div>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h1>Índice de Contenidos</h1>
+          <div class="red-line"></div>
+          <div class="toc-item" onclick="goTo(1)"><span class="toc-num">01</span>⚡ Velocidad de Onda en Cuerda Tensa</div>
+          <div class="toc-item" onclick="goTo(2)"><span class="toc-num">02</span>〜 Ondas Estacionarias en una Cuerda</div>
+          <div class="toc-item" onclick="goTo(3)"><span class="toc-num">03</span>♪ Nodos, Frecuencias y Armónicos</div>
+          <div class="toc-item" onclick="goTo(4)"><span class="toc-num">04</span>🎻 Ejemplo: Cuerda de Violín</div>
+          <div class="toc-item" onclick="goTo(5)"><span class="toc-num">05</span>⚙️ Ejemplo: Cuerda con Vibrador y Polea</div>
+          <div class="toc-item" onclick="goTo(6)"><span class="toc-num">06</span>🔬 Simulador: Ondas Estacionarias</div>
+          <div class="toc-item" onclick="goTo(7)"><span class="toc-num">07</span>🎸 Simulador: Ondas en Guitarra</div>
+          <div class="toc-item" onclick="goTo(8)"><span class="toc-num">08</span>🎵 La Guitarra Clásica Española</div>
+          <div class="toc-item" onclick="goTo(9)"><span class="toc-num">09</span>🔧 Partes y Construcción</div>
+          <div class="toc-item" onclick="goTo(10)"><span class="toc-num">10</span>🎼 Afinación Estándar y Semitonos</div>
+        </div>
+        <span class="page-num">i</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 1 — VELOCIDAD DE ONDA
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-1">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>⚡ Velocidad de Onda en una Cuerda Tensa</h1>
+          <div class="red-line"></div>
+          <p>Consideremos un pulso que viaja con velocidad <em>v</em> a lo largo de una cuerda sometida a una tensión <em>T</em> y que tiene una densidad lineal de masa <em>μ</em> (masa por unidad de longitud).</p>
+          <p>Para analizar la velocidad, nos situamos en un sistema de referencia que se mueve con el pulso. En este sistema la cuerda se mueve hacia la izquierda con velocidad <em>v</em>, y un pequeño segmento de arco Δ<em>s</em> en la cresta del pulso describe un arco circular de radio <em>r</em>.</p>
+
+          <h2>Masa del segmento</h2>
+          <div class="formula">Δm = μ · Δs = μ · 2rθ &nbsp;&nbsp;&nbsp; (1)</div>
+
+          <h2>Componentes de la tensión</h2>
+          <p>Las componentes horizontales se cancelan. Las componentes verticales apuntan hacia el centro del arco y proporcionan la fuerza centrípeta:</p>
+          <div class="formula">F<sub>y</sub> = 2T sin θ ≈ 2Tθ &nbsp;&nbsp;&nbsp; (2)</div>
+
+          <h2>Aplicando 2ª Ley de Newton</h2>
+          <div class="formula">F<sub>y</sub> = Δm · v² / r &nbsp;&nbsp;&nbsp; (3)</div>
+        </div>
+        <span class="page-num">1</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Deducción de la velocidad</h2>
+          <p>Sustituyendo (1) y (2) en (3):</p>
+          <div class="formula">2Tθ = (μ · 2rθ · v²) / r</div>
+          <p>Simplificando 2θ de ambos lados:</p>
+          <div class="formula">T = μv²</div>
+          <p>Despejando la velocidad de propagación:</p>
+          <div class="formula big">v = √(T/μ) &nbsp;&nbsp;&nbsp; (4)</div>
+
+          <h2>Resumen</h2>
+          <p>La velocidad de propagación de las ondas a lo largo de una cuerda sometida a la tensión <em>T</em> con densidad lineal de masa <em>μ</em> es:</p>
+          <div class="formula">v = √(T/μ)</div>
+          <p>Observa que la velocidad <strong>aumenta</strong> con la tensión y <strong>disminuye</strong> con la densidad lineal de masa.</p>
+          <div class="note-box">
+            <em>"A mayor tensión en la cuerda, más rápido viaja la onda. ¡Como al tensar las cuerdas de una guitarra!"</em>
+          </div>
+        </div>
+        <span class="page-num">2</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 2 — ONDAS ESTACIONARIAS
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-2">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>〜 Ondas Estacionarias en una Cuerda</h1>
+          <div class="red-line"></div>
+          <p>Consideremos una cuerda con un extremo fijo <em>O</em>. Una onda transversal incidente moviéndose hacia la izquierda:</p>
+          <div class="formula">y₁ = A₁ sin(ωt + kx)</div>
+          <p>Al llegar al extremo fijo, la onda se <strong>refleja</strong> con un cambio de fase de π. La onda reflejada se mueve hacia la derecha:</p>
+          <div class="formula">y₂ = −A₁ sin(ωt − kx)</div>
+
+          <h2>Superposición</h2>
+          <p>Por el principio de superposición, el desplazamiento total es:</p>
+          <div class="formula">y(x,t) = A₁[sin(ωt + kx) − sin(ωt − kx)] &nbsp;(6)</div>
+          <p>Usando identidad trigonométrica sin(α)−sin(β) = 2cos(…)sin(…):</p>
+          <div class="formula big">y(x,t) = 2A₁ sin(kx) cos(ωt)</div>
+
+          <h2>Condición de frontera</h2>
+          <p>Para una cuerda de longitud <em>L</em> con ambos extremos fijos: nodos en x=0 y x=L:</p>
+          <div class="formula">kL = nπ &nbsp;⟹&nbsp; λₙ = 2L/n</div>
+        </div>
+        <span class="page-num">3</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Características de la onda estacionaria</h2>
+          <div class="def-box">La ecuación <strong>y(x,t) = 2A₁ sin(kx) cos(ωt)</strong> describe una <strong>onda estacionaria</strong>.</div>
+          <ul>
+            <li>La amplitud varía con la posición: 2A₁ sin(kx)</li>
+            <li>El factor temporal cos(ωt) produce la oscilación</li>
+            <li>Puntos de amplitud cero = <strong>NODOS</strong></li>
+            <li>Puntos de amplitud máxima = <strong>ANTINODOS</strong></li>
+          </ul>
+
+          <h2>¿Por qué "estacionaria"?</h2>
+          <p>A diferencia de una onda viajera, la onda estacionaria no transporta energía neta a lo largo de la cuerda. Cada punto oscila en su lugar con amplitud fija.</p>
+
+          <h2>Diferencia onda viajera vs estacionaria</h2>
+          <table class="data-table">
+            <tr><th>Propiedad</th><th>Viajera</th><th>Estacionaria</th></tr>
+            <tr><td>Desplazamiento</td><td>Avanza</td><td>Fijo en x</td></tr>
+            <tr><td>Nodos</td><td>No tiene</td><td>Sí tiene</td></tr>
+            <tr><td>Energía</td><td>Se transporta</td><td>No neta</td></tr>
+            <tr><td>Amplitud</td><td>Constante</td><td>Varía con x</td></tr>
+          </table>
+        </div>
+        <span class="page-num">4</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 3 — NODOS Y FRECUENCIAS
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-3">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>♪ Nodos, Longitudes de Onda y Frecuencias</h1>
+          <div class="red-line"></div>
+          <p>La amplitud es cero para kx = nπ, donde n = 1, 2, 3, ... Puesto que k = 2π/λ, esto se puede escribir:</p>
+          <div class="formula">x = n · (λ/2) &nbsp;&nbsp;&nbsp; (9)</div>
+          <div class="def-box"><strong>Nodo:</strong> punto donde la amplitud es permanentemente cero.<br><strong>Antinodo:</strong> punto de máxima amplitud.</div>
+
+          <h2>Frecuencias de resonancia</h2>
+          <p>Esta condición limita las longitudes de onda y las frecuencias de oscilación a los valores:</p>
+          <div class="formula big">fₙ = (n/2L)√(T/μ)<br><small style="font-size:11px;font-weight:400">n = 1, 2, 3, …</small></div>
+
+          <h2>Frecuencia fundamental (n=1)</h2>
+          <div class="formula">f₁ = (1/2L)√(T/μ)</div>
+          <p>Es la frecuencia más baja posible en la cuerda. Todas las demás son múltiplos enteros de f₁.</p>
+        </div>
+        <span class="page-num">5</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Los armónicos</h2>
+          <ul>
+            <li><strong>n=1:</strong> Frecuencia fundamental — λ₁ = 2L — 0 nodos internos</li>
+            <li><strong>n=2:</strong> 2do armónico — λ₂ = L — 1 nodo central</li>
+            <li><strong>n=3:</strong> 3er armónico — λ₃ = 2L/3 — 2 nodos</li>
+            <li><strong>n=4:</strong> 4to armónico — λ₄ = L/2 — 3 nodos</li>
+            <li><strong>n=5:</strong> 5to armónico — λ₅ = 2L/5 — 4 nodos</li>
+          </ul>
+          <div class="note-box">Cada armónico tiene una frecuencia múltiplo entero de la fundamental: fₙ = n·f₁</div>
+
+          <h2>Ley de Mersenne</h2>
+          <p>La frecuencia fundamental depende de tres factores:</p>
+          <ul>
+            <li>↑ Tensión T → ↑ frecuencia (sonido más agudo)</li>
+            <li>↑ Longitud L → ↓ frecuencia (sonido más grave)</li>
+            <li>↑ Densidad μ → ↓ frecuencia (cuerda más pesada)</li>
+          </ul>
+          <div class="formula">f₁ = (1/2L)√(T/μ)</div>
+
+          <h2>Relación entre armónicos y nodos</h2>
+          <div class="formula">Nodos internos = n − 1<br>Antinodos = n<br>λₙ = 2L/n</div>
+        </div>
+        <span class="page-num">6</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 4 — EJEMPLO VIOLÍN
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-4">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>🎻 Ejemplo: Afinación de una Cuerda de Violín</h1>
+          <div class="red-line"></div>
+          <h3>Enunciado</h3>
+          <p>Una cuerda de violín tiene una longitud de <strong>0,35 m</strong> y se afina para un concierto en Sol, con f<sub>sol</sub> = 392 Hz.</p>
+          <p><strong>a)</strong> ¿Dónde debe colocar su dedo el violinista para tocar la nota La, con f<sub>la</sub> = 440 Hz?</p>
+          <p><strong>b)</strong> Si esta posición permanece correcta a un medio ancho de un dedo (dentro de 0,6 cm), ¿cuál es el máximo error porcentual permisible en la tensión?</p>
+
+          <h3>Solución – Parte a)</h3>
+          <p>La frecuencia fundamental para cada nota es:</p>
+          <div class="formula">f<sub>sol</sub> = (1/2L)√(T/μ) &nbsp;&nbsp; f<sub>la</sub> = (1/2l)√(T/μ)</div>
+          <p>Dividiendo (T y μ son iguales para ambas):</p>
+          <div class="formula">f<sub>sol</sub>/f<sub>la</sub> = l/L</div>
+          <div class="formula big">l = L × (f<sub>sol</sub>/f<sub>la</sub>) = 0,35 × (392/440)</div>
+          <div class="formula" style="color:#db2777;font-weight:700;">l ≈ 0,312 m = 31,2 cm</div>
+        </div>
+        <span class="page-num">7</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h3>Interpretación del resultado</h3>
+          <p>El violinista debe colocar su dedo a <strong>31,2 cm</strong> del puente para producir la nota La a 440 Hz.</p>
+
+          <h3>Solución – Parte b)</h3>
+          <p>La frecuencia fundamental depende de T como: f ∝ √T</p>
+          <p>Diferenciando implícitamente:</p>
+          <div class="formula">df/f = (1/2)(dT/T)</div>
+          <p>De manera similar, con f ∝ 1/l:</p>
+          <div class="formula">df/f = −dl/l</div>
+          <p>Igualando ambas expresiones:</p>
+          <div class="formula">dT/T = 2 · dl/l</div>
+          <p>El error porcentual en la tensión es el doble del error porcentual en la posición del dedo:</p>
+          <div class="formula big">dT/T % = 2 × (0,6/31,2) × 100%</div>
+          <div class="formula" style="color:#db2777;font-weight:700;font-size:18px;">= 3,84%</div>
+          <div class="note-box">Un error menor al 4% en la tensión es admisible para mantener la nota correctamente afinada.</div>
+        </div>
+        <span class="page-num">8</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 5 — EJEMPLO VIBRADOR Y POLEA
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-5">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>⚙️ Ejemplo: Cuerda con Vibrador y Polea</h1>
+          <div class="red-line"></div>
+          <h3>Enunciado</h3>
+          <p>Un objeto se puede colgar de una cuerda con densidad de masa lineal <strong>μ = 0,002 kg/m</strong>, que pasa sobre una polea ligera. La cuerda se conecta a un vibrador de <strong>frecuencia constante f</strong> y la longitud entre el punto P y la polea es <strong>L = 2 m</strong>.</p>
+          <p>Cuando la masa colgante es <strong>m₁ = 16 kg</strong>, se observan ondas estacionarias con <strong>n₁ = 5 segmentos</strong>.</p>
+          <p>¿Cuál es el valor <strong>máximo de la masa M</strong> que permite generar ondas estacionarias?</p>
+
+          <h3>Solución – Parte a)</h3>
+          <p>La tensión T es el peso del bloque: T = m·g</p>
+          <div class="formula">f = (n/2L)√(T/μ) = (n/2L)√(mg/μ)</div>
+          <p>Como L, μ y f son constantes:</p>
+          <div class="formula">n₁√m₁ = n₂√M</div>
+        </div>
+        <span class="page-num">9</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h3>Desarrollo del cálculo</h3>
+          <p>Para que M sea <strong>máximo</strong>, n₂ debe ser <strong>mínimo</strong>, es decir n₂ = 1:</p>
+          <div class="formula">√M = n₁√m₁ = 5√16 kg = 5 × 4 = 20</div>
+          <div class="formula">M = (5√16)² = 25 × 16 kg</div>
+          <div class="formula big" style="color:#db2777;">M = 400 kg</div>
+
+          <div class="note-box">
+            Se concluye que el valor máximo de la masa que permite generar ondas estacionarias en la cuerda es <strong>M = 400 kg</strong>.
+          </div>
+
+          <h3>Verificación</h3>
+          <p>Con m₁ = 16 kg y n₁ = 5 segmentos:</p>
+          <div class="formula">f = (5/2×2)√(16×9.8/0.002) = (5/4)√(78400)</div>
+          <p>Esta misma frecuencia con n₂ = 1 requiere M = 400 kg, lo que confirma el resultado.</p>
+
+          <div class="def-box">
+            <strong>Principio:</strong> A mayor masa (más tensión), la cuerda produce ondas con menor número de segmentos para la misma frecuencia forzada.
+          </div>
+        </div>
+        <span class="page-num">10</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 6 — SIMULADOR ONDAS ESTACIONARIAS
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-6">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>🔬 Simulador de Ondas Estacionarias</h1>
+          <div class="red-line"></div>
+          <p>Visualiza en tiempo real la formación de ondas estacionarias en una cuerda con ambos extremos fijos. Modifica los parámetros para explorar los diferentes armónicos.</p>
+
+          <div class="sim-wrap">
+            <canvas id="waveCanvas" width="360" height="160"></canvas>
+            <div class="sim-controls">
+              <div class="ctrl-group">
+                <span class="ctrl-label">ARMÓNICO n</span>
+                <input type="range" id="sN" min="1" max="8" value="1" oninput="waveUpdate()">
+                <span class="ctrl-val" id="sNv">n = 1</span>
+              </div>
+              <div class="ctrl-group">
+                <span class="ctrl-label">AMPLITUD</span>
+                <input type="range" id="sA" min="8" max="38" value="22" oninput="waveUpdate()">
+                <span class="ctrl-val" id="sAv">22</span>
+              </div>
+              <div class="ctrl-group">
+                <span class="ctrl-label">VELOCIDAD</span>
+                <input type="range" id="sV" min="1" max="8" value="3" oninput="waveUpdate()">
+                <span class="ctrl-val" id="sVv">3</span>
+              </div>
+              <button class="sbtn" id="waveBtn" onclick="waveToggle()">▶ Play</button>
+            </div>
+            <div class="sim-info" id="waveInfo">n=1 | Frecuencia fundamental | 0 nodos internos</div>
+          </div>
+        </div>
+        <span class="page-num">11</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>¿Qué estás viendo?</h2>
+          <p>El simulador muestra la <strong>onda estacionaria resultante</strong> formada por la superposición de dos ondas viajeras.</p>
+
+          <h3>Leyenda de colores</h3>
+          <ul>
+            <li><span style="color:#7c3aed">■</span> <strong>Onda incidente</strong> — viaja hacia la izquierda</li>
+            <li><span style="color:#db2777">■</span> <strong>Onda reflejada</strong> — viaja hacia la derecha</li>
+            <li><span style="color:#fff">■</span> <strong>Onda resultante</strong> — estacionaria</li>
+            <li><span style="color:#fbbf24">●</span> <strong>Nodos</strong> — puntos de amplitud cero</li>
+          </ul>
+
+          <h3>Experimenta</h3>
+          <ul>
+            <li>Sube el armónico n para ver más nodos</li>
+            <li>Observa que los nodos siempre están equiespaciados en λ/2</li>
+            <li>Con n=1, solo hay nodos en los extremos</li>
+            <li>Los antinodos oscilan con la mayor amplitud</li>
+          </ul>
+
+          <div class="formula" style="font-size:12px;">
+            Nodos internos = n − 1<br>
+            Antinodos = n<br>
+            Longitud de onda: λₙ = 2L/n
+          </div>
+          <div class="note-box">Presiona <strong>▶ Play</strong> para ver la animación en tiempo real.</div>
+        </div>
+        <span class="page-num">12</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 7 — SIMULADOR GUITARRA
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-7">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>🎸 Simulador: Ondas en Guitarra</h1>
+          <div class="red-line"></div>
+          <p>Explora los <strong>armónicos y ondas estacionarias</strong> en las cuerdas de una guitarra. Selecciona la cuerda, el traste y el armónico.</p>
+
+          <div class="sim-wrap">
+            <canvas id="guitarCanvas" width="360" height="120"></canvas>
+            <div class="sim-controls">
+              <div class="ctrl-group">
+                <span class="ctrl-label">CUERDA</span>
+                <select id="gStr" onchange="guitarUpdate()">
+                  <option value="329.6">1ª Mi — 329.6 Hz</option>
+                  <option value="246.9">2ª Si — 246.9 Hz</option>
+                  <option value="196.0">3ª Sol — 196.0 Hz</option>
+                  <option value="146.8">4ª Re — 146.8 Hz</option>
+                  <option value="110.0">5ª La — 110.0 Hz</option>
+                  <option value="82.4">6ª Mi — 82.4 Hz</option>
+                </select>
+              </div>
+              <div class="ctrl-group">
+                <span class="ctrl-label">TRASTE</span>
+                <input type="range" id="gFret" min="0" max="12" value="0" oninput="guitarUpdate()">
+                <span class="ctrl-val" id="gFretV">Aire</span>
+              </div>
+              <div class="ctrl-group">
+                <span class="ctrl-label">ARMÓNICO</span>
+                <input type="range" id="gHarm" min="1" max="6" value="1" oninput="guitarUpdate()">
+                <span class="ctrl-val" id="gHarmV">n=1</span>
+              </div>
+            </div>
+            <div class="sim-info" id="guitarInfo">1ª cuerda al aire | 329.6 Hz | n=1</div>
+          </div>
+        </div>
+        <span class="page-num">13</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Ondas en la guitarra</h2>
+          <p>Al pulsar una cuerda, ésta vibra simultáneamente en su <strong>frecuencia fundamental</strong> y en múltiples <strong>armónicos</strong>. El timbre del instrumento depende de qué armónicos predominan.</p>
+
+          <h3>Efecto de los trastes</h3>
+          <p>Al pisar el traste n, la longitud vibrante se acorta y la frecuencia aumenta:</p>
+          <div class="formula">f<sub>n</sub> = f<sub>aire</sub> × 2^(n/12)</div>
+
+          <h3>Cuerdas de la guitarra (afinación estándar)</h3>
+          <table class="data-table">
+            <tr><th>Cuerda</th><th>Nota</th><th>Frecuencia</th></tr>
+            <tr><td>1ª (más aguda)</td><td>Mi E₄</td><td>329.6 Hz</td></tr>
+            <tr><td>2ª</td><td>Si B₃</td><td>246.9 Hz</td></tr>
+            <tr><td>3ª</td><td>Sol G₃</td><td>196.0 Hz</td></tr>
+            <tr><td>4ª</td><td>Re D₃</td><td>146.8 Hz</td></tr>
+            <tr><td>5ª</td><td>La A₂</td><td>110.0 Hz</td></tr>
+            <tr><td>6ª (más grave)</td><td>Mi E₂</td><td>82.4 Hz</td></tr>
+          </table>
+          <div class="note-box">La cuerda seleccionada aparece resaltada con su color y mayor amplitud en el simulador.</div>
+        </div>
+        <span class="page-num">14</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 8 — LA GUITARRA CLÁSICA ESPAÑOLA
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-8">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>🎵 La Guitarra Clásica Española</h1>
+          <div class="red-line"></div>
+          <p>La guitarra es un instrumento musical de la familia de los <strong>cordófonos</strong>, es decir, los instrumentos que producen su sonido al hacer vibrar las cuerdas. Es un instrumento de <em>cuerda pulsada</em>, compuesto por una caja de resonancia, un mástil y seis cuerdas.</p>
+
+          <h2>Familia de la Guitarra</h2>
+          <ul>
+            <li><strong>Cuatro</strong> — instrumento típico de Venezuela</li>
+            <li><strong>Ukelele</strong> — originario de Hawái</li>
+            <li><strong>Requinto</strong> — más pequeño que la guitarra</li>
+            <li><strong>Charango</strong> — originario de los Andes</li>
+            <li><strong>Guitarrón mexicano</strong> — usado por los mariachis</li>
+          </ul>
+
+          <h2>Materiales de las Cuerdas</h2>
+          <ul>
+            <li><strong>Nailón:</strong> Sustituyó a la tripa natural a mediados del siglo XX. Sonido equilibrado y cálido, buena capacidad de <em>sustain</em>.</li>
+            <li><strong>Fibra de carbono:</strong> Sonido más brillante y definido, mayor proyección y afinación más estable.</li>
+            <li><strong>Tripa animal:</strong> Uso histórico, hoy en desuso habitual. Algunos intérpretes la prefieren por su calidez y carácter.</li>
+          </ul>
+        </div>
+        <span class="page-num">15</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Partes principales</h2>
+          <ul>
+            <li><strong>Caja de resonancia:</strong> Formada por fondo, tapa armónica y aros laterales. Amplifica el sonido.</li>
+            <li><strong>Tapa armónica:</strong> Tiene una perforación llamada "boca" con la "roseta". Puede ser de pino, abeto, cedro o ciprés.</li>
+            <li><strong>Mástil:</strong> Parte alargada donde se ubica el diapasón.</li>
+            <li><strong>Cejilla:</strong> Pieza de hueso, marfil o plástico que separa las cuerdas entre mástil y clavijero.</li>
+            <li><strong>Puente:</strong> Sujeta las cuerdas en la tapa armónica.</li>
+            <li><strong>Clavijero:</strong> Mecanismo para afinar tensando o destensando las cuerdas.</li>
+          </ul>
+
+          <h2>Espinetas (Varetas)</h2>
+          <p>La tapa armónica está reforzada interiormente por 5 a 9 barras finas de madera llamadas "espinetas", dispuestas en forma de abanico. Estas distribuyen el sonido y la vibración de manera uniforme en la tapa.</p>
+          <div class="note-box">La disposición en abanico de las espinetas fue una innovación del luthier Antonio de Torres (siglo XIX), considerado el padre de la guitarra moderna.</div>
+        </div>
+        <span class="page-num">16</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 9 — PARTES Y CONSTRUCCIÓN
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-9">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>🔧 Partes y Construcción</h1>
+          <div class="red-line"></div>
+          <svg viewBox="0 0 260 230" style="width:100%;margin:4px 0;background:#f5f0e8;border-radius:8px;border:1px solid rgba(124,58,237,0.18);">
+            <!-- Body lower bout -->
+            <ellipse cx="90" cy="160" rx="62" ry="52" fill="#c8a56a" stroke="#7c4a0a" stroke-width="1.5"/>
+            <!-- Body upper bout -->
+            <ellipse cx="90" cy="108" rx="44" ry="34" fill="#c8a56a" stroke="#7c4a0a" stroke-width="1.5"/>
+            <!-- Waist fill -->
+            <rect x="52" y="118" width="76" height="30" fill="#c8a56a"/>
+            <!-- Sound hole -->
+            <circle cx="90" cy="148" r="17" fill="#3a1f00" stroke="#7c4a0a" stroke-width="1.5"/>
+            <circle cx="90" cy="148" r="15" fill="none" stroke="#d4a017" stroke-width="1.8" stroke-dasharray="3,2"/>
+            <!-- Bridge -->
+            <rect x="70" y="178" width="40" height="7" rx="2" fill="#5a2d00" stroke="#3a1400" stroke-width="1"/>
+            <!-- Neck -->
+            <rect x="81" y="22" width="18" height="90" rx="3" fill="#8b6914" stroke="#5a3e00" stroke-width="1.5"/>
+            <!-- Fret lines -->
+            <line x1="81" y1="42" x2="99" y2="42" stroke="#d0c090" stroke-width="1"/>
+            <line x1="81" y1="55" x2="99" y2="55" stroke="#d0c090" stroke-width="1"/>
+            <line x1="81" y1="66" x2="99" y2="66" stroke="#d0c090" stroke-width="1"/>
+            <line x1="81" y1="76" x2="99" y2="76" stroke="#d0c090" stroke-width="1"/>
+            <line x1="81" y1="85" x2="99" y2="85" stroke="#d0c090" stroke-width="1"/>
+            <!-- Strings -->
+            <line x1="84" y1="22" x2="84" y2="180" stroke="#bbb" stroke-width="0.7"/>
+            <line x1="87" y1="22" x2="87" y2="180" stroke="#bbb" stroke-width="0.9"/>
+            <line x1="90" y1="22" x2="90" y2="180" stroke="#aaa" stroke-width="1.1"/>
+            <line x1="93" y1="22" x2="93" y2="180" stroke="#999" stroke-width="1.3"/>
+            <line x1="96" y1="22" x2="96" y2="180" stroke="#888" stroke-width="1.5"/>
+            <line x1="99" y1="22" x2="99" y2="180" stroke="#777" stroke-width="1.7"/>
+            <!-- Headstock -->
+            <rect x="78" y="8" width="24" height="20" rx="4" fill="#6b4f10" stroke="#5a3e00" stroke-width="1.5"/>
+            <!-- Tuning pegs -->
+            <circle cx="82" cy="12" r="3" fill="#ccc" stroke="#888" stroke-width="1"/>
+            <circle cx="90" cy="12" r="3" fill="#ccc" stroke="#888" stroke-width="1"/>
+            <circle cx="98" cy="12" r="3" fill="#ccc" stroke="#888" stroke-width="1"/>
+            <!-- Labels -->
+            <text x="128" y="14" font-size="8.5" fill="#5b21b6" font-family="monospace">CLAVIJERO</text>
+            <line x1="102" y1="14" x2="126" y2="14" stroke="#7c3aed" stroke-width="0.8"/>
+            <text x="128" y="58" font-size="8.5" fill="#5b21b6" font-family="monospace">MÁSTIL / DIAPASÓN</text>
+            <line x1="100" y1="58" x2="126" y2="58" stroke="#7c3aed" stroke-width="0.8"/>
+            <text x="128" y="100" font-size="8.5" fill="#5b21b6" font-family="monospace">CEJUELA</text>
+            <line x1="100" y1="95" x2="126" y2="98" stroke="#7c3aed" stroke-width="0.8"/>
+            <text x="128" y="140" font-size="8.5" fill="#5b21b6" font-family="monospace">BOCA / ROSETA</text>
+            <line x1="107" y1="145" x2="126" y2="140" stroke="#7c3aed" stroke-width="0.8"/>
+            <text x="128" y="183" font-size="8.5" fill="#5b21b6" font-family="monospace">PUENTE</text>
+            <line x1="112" y1="182" x2="126" y2="182" stroke="#7c3aed" stroke-width="0.8"/>
+            <text x="5" y="165" font-size="8.5" fill="#db2777" font-family="monospace">CAJA</text>
+            <text x="128" y="215" font-size="8.5" fill="#5b21b6" font-family="monospace">TAPA ARMÓNICA</text>
+            <line x1="100" y1="205" x2="126" y2="213" stroke="#7c3aed" stroke-width="0.8"/>
+          </svg>
+        </div>
+        <span class="page-num">17</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Maderas de construcción</h2>
+          <table class="data-table">
+            <tr><th>Parte</th><th>Madera habitual</th></tr>
+            <tr><td>Tapa</td><td>Abeto alemán, cedro canadiense</td></tr>
+            <tr><td>Fondo y aros</td><td>Palo de rosa, ciprés, arce</td></tr>
+            <tr><td>Mástil</td><td>Cedro español</td></tr>
+            <tr><td>Diapasón</td><td>Ébano, palo de rosa</td></tr>
+            <tr><td>Puente</td><td>Palo de rosa, ébano</td></tr>
+          </table>
+
+          <h2>La física de la caja de resonancia</h2>
+          <p>La caja amplifica el sonido mediante <strong>resonancia acústica</strong>. El volumen de aire interior tiene frecuencias de resonancia propias (resonancia de Helmholtz) que se acoplan con las frecuencias de las cuerdas:</p>
+          <div class="formula">f<sub>H</sub> = (v<sub>s</sub>/2π)√(A/V·L<sub>ef</sub>)</div>
+          <p>Donde A = área de la boca, V = volumen interior, L<sub>ef</sub> = longitud efectiva de la boca.</p>
+          <div class="note-box">Una caja más grande produce sonidos más cálidos y profundos; una caja más pequeña produce sonidos más brillantes y proyectados.</div>
+        </div>
+        <span class="page-num">18</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SPREAD 10 — AFINACIÓN ESTÁNDAR Y SEMITONOS
+    ════════════════════════════════════════════ -->
+    <div class="spread" id="spread-10">
+      <div class="page page-left">
+        <div class="page-inner">
+          <h1>🎼 Afinación Estándar y Semitonos</h1>
+          <div class="red-line"></div>
+          <p>Las cuerdas se numeran de abajo arriba (de más aguda a más grave):</p>
+          <table class="data-table">
+            <tr><th>Cuerda</th><th>Nota</th><th>Notación</th><th>Frecuencia</th></tr>
+            <tr><td>1ª (más aguda)</td><td>Mi</td><td>E₄</td><td>329.6 Hz</td></tr>
+            <tr><td>2ª</td><td>Si</td><td>B₃</td><td>246.9 Hz</td></tr>
+            <tr><td>3ª</td><td>Sol</td><td>G₃</td><td>196.0 Hz</td></tr>
+            <tr><td>4ª</td><td>Re</td><td>D₃</td><td>146.8 Hz</td></tr>
+            <tr><td>5ª</td><td>La</td><td>A₂</td><td>110.0 Hz</td></tr>
+            <tr><td>6ª (más grave)</td><td>Mi</td><td>E₂</td><td>82.4 Hz</td></tr>
+          </table>
+
+          <h2>Escala cromática — Los 12 semitonos</h2>
+          <p>El sistema musical tiene 12 sonidos que se repiten (la escala cromática). Cada traste representa un <strong>medio tono</strong> (semitono):</p>
+          <div class="semitones">
+            <span class="semitone">Do</span><span class="semitone sharp">Do#</span>
+            <span class="semitone">Re</span><span class="semitone sharp">Re#</span>
+            <span class="semitone">Mi</span><span class="semitone">Fa</span>
+            <span class="semitone sharp">Fa#</span><span class="semitone">Sol</span>
+            <span class="semitone sharp">Sol#</span><span class="semitone">La</span>
+            <span class="semitone sharp">La#</span><span class="semitone">Si</span>
+          </div>
+        </div>
+        <span class="page-num">19</span>
+      </div>
+
+      <div class="page page-right">
+        <div class="page-inner">
+          <h2>Relación frecuencia–traste</h2>
+          <p>La frecuencia de cada nota se relaciona con la anterior por un factor de <strong>¹²√2 ≈ 1,05946</strong>. Subir 12 semitonos dobla la frecuencia (una octava):</p>
+          <div class="formula">f<sub>traste n</sub> = f<sub>aire</sub> × 2^(n/12)</div>
+
+          <h2>Método de afinación por trastes</h2>
+          <ul>
+            <li>6ª cuerda, traste 5 = 5ª cuerda al aire</li>
+            <li>5ª cuerda, traste 5 = 4ª cuerda al aire</li>
+            <li>4ª cuerda, traste 5 = 3ª cuerda al aire</li>
+            <li>3ª cuerda, <strong>traste 4</strong> = 2ª cuerda al aire ⚠️</li>
+            <li>2ª cuerda, traste 5 = 1ª cuerda al aire</li>
+          </ul>
+          <div class="note-box">⚠️ Entre la 3ª y la 2ª cuerda la diferencia es de solo <strong>4 trastes</strong>, no 5. ¡Es la excepción que hay que recordar!</div>
+
+          <h2>Acústica de los trastes</h2>
+          <p>Al pisar el traste n, la longitud vibrante se reduce según la relación de Mersenne. El punto de pisado divide la cuerda en proporción 2^(-n/12) de su longitud original:</p>
+          <div class="formula">L<sub>n</sub> = L × 2^(-n/12)</div>
+        </div>
+        <span class="page-num">20</span>
+      </div>
+    </div>
+
+  </div><!-- /.book -->
+
+  <div class="nav-bar">
+    <button class="nbtn nbtn-prev" id="btnPrev" onclick="changePage(-1)" disabled>← ANTERIOR</button>
+    <div class="page-ind" id="pageInd">1 / 11</div>
+    <button class="nbtn nbtn-next" id="btnNext" onclick="changePage(1)">SIGUIENTE →</button>
+  </div>
+
+</div><!-- /.book-wrapper -->
+
+<script>
+// ─── Navigation ──────────────────────────────────────────────────────
+const TOTAL = 11;
+let cur = 0;
+
+function showSpread(n) {
+  document.querySelectorAll('.spread').forEach(s => s.classList.remove('active'));
+  document.getElementById('spread-' + n).classList.add('active');
+  document.getElementById('pageInd').textContent = (n + 1) + ' / ' + TOTAL;
+  document.getElementById('btnPrev').disabled = n === 0;
+  document.getElementById('btnNext').disabled = n === TOTAL - 1;
+
+  // start / stop simulators
+  if (n === 6) startWave();
+  else stopWave();
+  if (n === 7) startGuitar();
+  else stopGuitar();
+}
+
+function changePage(d) {
+  cur = Math.max(0, Math.min(TOTAL - 1, cur + d));
+  showSpread(cur);
+}
+
+function goTo(n) { cur = n; showSpread(n); }
+
+// ─── Wave Simulator ──────────────────────────────────────────────────
+let wRaf = null, wRunning = false, wPhase = 0;
+
+function waveUpdate() {
+  const n  = +document.getElementById('sN').value;
+  const a  = +document.getElementById('sA').value;
+  const sp = +document.getElementById('sV').value;
+  document.getElementById('sNv').textContent = 'n = ' + n;
+  document.getElementById('sAv').textContent = a;
+  document.getElementById('sVv').textContent = sp;
+  const nodes = n - 1;
+  document.getElementById('waveInfo').textContent =
+    'n=' + n + ' | ' + (n===1 ? 'Frec. fundamental' : n+'° armónico') +
+    ' | ' + nodes + ' nodo' + (nodes!==1?'s':'') + ' interno' + (nodes!==1?'s':'');
+  if (!wRunning) drawWave();
+}
+
+function waveToggle() {
+  wRunning = !wRunning;
+  const btn = document.getElementById('waveBtn');
+  btn.textContent = wRunning ? '⏸ Pausa' : '▶ Play';
+  btn.classList.toggle('on', wRunning);
+  if (wRunning) waveLoop();
+}
+
+function waveLoop() {
+  if (!wRunning) return;
+  drawWave();
+  wPhase += +document.getElementById('sV').value * 0.022;
+  wRaf = requestAnimationFrame(waveLoop);
+}
+
+function drawWave() {
+  const cv = document.getElementById('waveCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#050310'; ctx.fillRect(0,0,W,H);
+
+  const n  = +document.getElementById('sN').value;
+  const A  = +document.getElementById('sA').value;
+  const sx = 12, ex = W - 12, L = ex - sx, cy = H / 2;
+  const k  = (n * Math.PI) / L;
+
+  // incident
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(124,58,237,0.55)'; ctx.lineWidth = 1.5;
+  for (let x = 0; x <= L; x++) {
+    const py = A * Math.sin(k*x - wPhase) * 0.75;
+    x===0 ? ctx.moveTo(sx+x, cy+py) : ctx.lineTo(sx+x, cy+py);
+  }
+  ctx.stroke();
+
+  // reflected
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(219,39,119,0.55)'; ctx.lineWidth = 1.5;
+  for (let x = 0; x <= L; x++) {
+    const py = -A * Math.sin(k*x + wPhase) * 0.75;
+    x===0 ? ctx.moveTo(sx+x, cy+py) : ctx.lineTo(sx+x, cy+py);
+  }
+  ctx.stroke();
+
+  // resultant
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 2.5;
+  for (let x = 0; x <= L; x++) {
+    const py = 2 * A * Math.sin(k*x) * Math.cos(wPhase) * 0.75;
+    x===0 ? ctx.moveTo(sx+x, cy+py) : ctx.lineTo(sx+x, cy+py);
+  }
+  ctx.stroke();
+
+  // nodes
+  ctx.fillStyle = '#fbbf24';
+  for (let i = 0; i <= n; i++) {
+    const nx = sx + (i * L) / n;
+    ctx.beginPath(); ctx.arc(nx, cy, 4.5, 0, Math.PI*2); ctx.fill();
+  }
+
+  // center line
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth=1;
+  ctx.setLineDash([4,4]); ctx.moveTo(sx,cy); ctx.lineTo(ex,cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // legend
+  const leg = [['rgba(124,58,237,0.9)','incidente'],['rgba(219,39,119,0.9)','reflejada'],['rgba(255,255,255,0.8)','resultante'],['#fbbf24','nodos']];
+  leg.forEach(([c,t],i) => {
+    ctx.fillStyle = c; ctx.font = '9px monospace';
+    ctx.fillText('■ '+t, sx+4, 12+i*12);
+  });
+}
+
+function startWave() { waveUpdate(); }
+function stopWave() {
+  wRunning = false;
+  if (wRaf) cancelAnimationFrame(wRaf);
+  const btn = document.getElementById('waveBtn');
+  if (btn) { btn.textContent = '▶ Play'; btn.classList.remove('on'); }
+}
+
+// ─── Guitar Simulator ────────────────────────────────────────────────
+let gRaf = null, gRunning = false, gPhase = 0;
+
+function startGuitar() { gRunning = true; guitarUpdate(); guitarLoop(); }
+function stopGuitar() {
+  gRunning = false;
+  if (gRaf) cancelAnimationFrame(gRaf);
+}
+
+function guitarUpdate() {
+  const f    = +document.getElementById('gStr').value;
+  const fret = +document.getElementById('gFret').value;
+  const harm = +document.getElementById('gHarm').value;
+  const freq = f * Math.pow(2, fret/12);
+  document.getElementById('gFretV').textContent = fret===0 ? 'Aire' : 'Traste '+fret;
+  document.getElementById('gHarmV').textContent = 'n='+harm;
+  const names = {329.6:'1ª Mi',246.9:'2ª Si',196.0:'3ª Sol',146.8:'4ª Re',110.0:'5ª La',82.4:'6ª Mi'};
+  document.getElementById('guitarInfo').textContent =
+    (names[f]||'Mi') + (fret?', traste '+fret:' al aire') + ' | ' + freq.toFixed(1) + ' Hz | n='+harm;
+  if (!gRunning) drawGuitar();
+}
+
+function guitarLoop() {
+  if (!gRunning) return;
+  drawGuitar();
+  gPhase += 0.055;
+  gRaf = requestAnimationFrame(guitarLoop);
+}
+
+function drawGuitar() {
+  const cv = document.getElementById('guitarCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#050310'; ctx.fillRect(0,0,W,H);
+
+  const selF = +document.getElementById('gStr').value;
+  const harm = +document.getElementById('gHarm').value;
+  const sx = 22, ex = W-14, L = ex-sx;
+  const freqs = [329.6, 246.9, 196.0, 146.8, 110.0, 82.4];
+  const colors= ['#e879f9','#a78bfa','#60a5fa','#34d399','#fbbf24','#f87171'];
+  const rowH  = (H-16) / 6;
+
+  freqs.forEach((f, i) => {
+    const cy  = 14 + i * rowH + rowH/2;
+    const sel = f === selF;
+    const k   = (harm * Math.PI) / L;
+    const A   = sel ? 14 : 2.5;
+
+    ctx.beginPath();
+    ctx.strokeStyle = sel ? colors[i] : 'rgba(255,255,255,0.18)';
+    ctx.lineWidth   = sel ? 2 : 0.8;
+    for (let x=0; x<=L; x++) {
+      const py = A * Math.sin(k*x) * Math.cos(gPhase * (1 + i*0.07));
+      x===0 ? ctx.moveTo(sx+x, cy+py) : ctx.lineTo(sx+x, cy+py);
+    }
+    ctx.stroke();
+
+    // label
+    const names = ['1ª Mi','2ª Si','3ª Sol','4ª Re','5ª La','6ª Mi'];
+    ctx.fillStyle = sel ? colors[i] : 'rgba(255,255,255,0.3)';
+    ctx.font = sel ? 'bold 8px monospace' : '8px monospace';
+    ctx.fillText(names[i], 0, cy+3);
+  });
+
+  // freq display
+  const fret = +document.getElementById('gFret').value;
+  const freq = selF * Math.pow(2, fret/12);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '9px monospace';
+  ctx.fillText(freq.toFixed(1)+' Hz', W-60, H-4);
+}
+
+// init
+showSpread(0);
+setTimeout(() => { drawWave(); drawGuitar(); }, 200);
+</script>
+</body>
+</html>
